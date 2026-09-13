@@ -4,7 +4,10 @@ ludus_jenkins_agent_name: "{{ inventory_hostname }}"
 ludus_jenkins_agent_labels: "windows-msvc windows-dotnet"
 ludus_jenkins_agent_workdir: "C:\\Jenkins"
 ludus_jenkins_agent_user: jenkins-agent
-ludus_jenkins_agent_password: "JenkinsAgent1!"
+# NOTE: Windows password complexity rejects any password containing a >=3-char
+# token of the account name. The user is "jenkins-agent", so the password must
+# NOT contain "jenkins" or "agent" (case-insensitive). Override in production.
+ludus_jenkins_agent_password: "Ch4ngeMe!Runner1"
 ludus_jenkins_java_version: "21"
 # Chocolatey package that provides JDK 21. The community feed has no "openjdk21"
 # package; temurin21 (Eclipse Temurin) is the standard, always-present choice.
