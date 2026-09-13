@@ -14,6 +14,16 @@
     password_never_expires: true
     user_cannot_change_password: true
 
+- name: Grant the agent account the 'Log on as a service' right
+  # A service running under a custom account must hold SeServiceLogonRight or
+  # Windows refuses to start it ("Failed to start service"). Membership in
+  # Administrators does not grant this implicitly.
+  community.windows.win_user_right:
+    name: SeServiceLogonRight
+    users:
+      - ".\\{{ ludus_jenkins_agent_user }}"
+    action: add
+
 - name: Create agent work directory
   ansible.windows.win_file:
     path: "{{ ludus_jenkins_agent_workdir }}"
