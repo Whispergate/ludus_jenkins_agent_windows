@@ -62,7 +62,16 @@
   changed_when: false
 
 - name: Create Jenkins agent Windows service
+  # Recreated every run so config changes (java path, credentials, url) always
+  # take effect. The previous `creates: agent-stdout.log` guard keyed idempotency
+  # on a runtime log file, which permanently pinned the service to its first
+  # (possibly broken) configuration. Tear down any existing service first so a
+  # stale or stuck (e.g. paused) service is replaced cleanly.
   ansible.windows.win_shell: |
+    if (Get-Service JenkinsAgent -ErrorAction SilentlyContinue) {
+      nssm stop JenkinsAgent | Out-Null
+      nssm remove JenkinsAgent confirm | Out-Null
+    }
     nssm install JenkinsAgent "{{ ludus_jenkins_agent_java_exe.stdout | trim }}" `
       "-jar" "{{ ludus_jenkins_agent_workdir }}\agent.jar" `
       "-url" "{{ ludus_jenkins_url }}" `
@@ -73,8 +82,6 @@
     nssm set JenkinsAgent AppStdout "{{ ludus_jenkins_agent_workdir }}\agent-stdout.log"
     nssm set JenkinsAgent AppStderr "{{ ludus_jenkins_agent_workdir }}\agent-stderr.log"
     nssm set JenkinsAgent Start SERVICE_AUTO_START
-  args:
-    creates: "{{ ludus_jenkins_agent_workdir }}\\agent-stdout.log"
 
 - name: Create firewall rule for Jenkins agent
   community.windows.win_firewall_rule:
