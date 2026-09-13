@@ -18,7 +18,7 @@
   # A service running under a custom account must hold SeServiceLogonRight or
   # Windows refuses to start it ("Failed to start service"). Membership in
   # Administrators does not grant this implicitly.
-  community.windows.win_user_right:
+  ansible.windows.win_user_right:
     name: SeServiceLogonRight
     users:
       - ".\\{{ ludus_jenkins_agent_user }}"
