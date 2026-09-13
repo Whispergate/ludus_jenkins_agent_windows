@@ -1,0 +1,10 @@
+$JAVA_HOME = "C:\Program Files\OpenJDK\jdk-21"
+$JENKINS_URL = "{{ ludus_jenkins_url }}"
+$AGENT_NAME = "{{ ludus_jenkins_agent_name }}"
+$WORK_DIR = "{{ ludus_jenkins_agent_workdir }}"
+
+& "$JAVA_HOME\bin\java.exe" -jar "$WORK_DIR\agent.jar" `
+    -url $JENKINS_URL `
+    -name $AGENT_NAME `
+    -workDir $WORK_DIR `
+    -webSocket

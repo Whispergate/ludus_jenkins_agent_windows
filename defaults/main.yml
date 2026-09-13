@@ -1,0 +1,8 @@
+---
+ludus_jenkins_url: "http://jenkins:8080"
+ludus_jenkins_agent_name: "{{ inventory_hostname }}"
+ludus_jenkins_agent_labels: "windows-msvc windows-dotnet"
+ludus_jenkins_agent_workdir: "C:\\Jenkins"
+ludus_jenkins_agent_user: jenkins-agent
+ludus_jenkins_agent_password: "JenkinsAgent1!"
+ludus_jenkins_java_version: "21"

@@ -1,0 +1,67 @@
+---
+- name: Install Java 21 via Chocolatey
+  chocolatey.chocolatey.win_chocolatey:
+    name: openjdk21
+    state: present
+
+- name: Create Jenkins agent user
+  ansible.windows.win_user:
+    name: "{{ ludus_jenkins_agent_user }}"
+    password: "{{ ludus_jenkins_agent_password }}"
+    state: present
+    groups:
+      - Administrators
+    password_never_expires: true
+    user_cannot_change_password: true
+
+- name: Create agent work directory
+  ansible.windows.win_file:
+    path: "{{ ludus_jenkins_agent_workdir }}"
+    state: directory
+
+- name: Download Jenkins agent JAR
+  ansible.windows.win_get_url:
+    url: "{{ ludus_jenkins_url }}/jnlpJars/agent.jar"
+    dest: "{{ ludus_jenkins_agent_workdir }}\\agent.jar"
+    validate_certs: false
+
+- name: Template agent launch script
+  ansible.windows.win_template:
+    src: jenkins-agent.ps1.j2
+    dest: "{{ ludus_jenkins_agent_workdir }}\\start-agent.ps1"
+
+- name: Install NSSM for service management
+  chocolatey.chocolatey.win_chocolatey:
+    name: nssm
+    state: present
+
+- name: Create Jenkins agent Windows service
+  ansible.windows.win_shell: |
+    nssm install JenkinsAgent "C:\Program Files\OpenJDK\jdk-21\bin\java.exe" `
+      "-jar" "{{ ludus_jenkins_agent_workdir }}\agent.jar" `
+      "-url" "{{ ludus_jenkins_url }}" `
+      "-name" "{{ ludus_jenkins_agent_name }}" `
+      "-workDir" "{{ ludus_jenkins_agent_workdir }}" `
+      "-webSocket"
+    nssm set JenkinsAgent ObjectName ".\{{ ludus_jenkins_agent_user }}" "{{ ludus_jenkins_agent_password }}"
+    nssm set JenkinsAgent AppStdout "{{ ludus_jenkins_agent_workdir }}\agent-stdout.log"
+    nssm set JenkinsAgent AppStderr "{{ ludus_jenkins_agent_workdir }}\agent-stderr.log"
+    nssm set JenkinsAgent Start SERVICE_AUTO_START
+  args:
+    creates: "{{ ludus_jenkins_agent_workdir }}\\agent-stdout.log"
+
+- name: Create firewall rule for Jenkins agent
+  community.windows.win_firewall_rule:
+    name: Jenkins Agent
+    direction: in
+    action: allow
+    localport: 50000
+    protocol: tcp
+    state: present
+    enabled: true
+
+- name: Start Jenkins agent service
+  ansible.windows.win_service:
+    name: JenkinsAgent
+    state: started
+    start_mode: auto

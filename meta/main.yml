@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Whispergate
+  description: Installs a Jenkins agent on Windows Server for MAAS build pipelines
+  license: BSD-2-Clause
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Windows
+      versions:
+        - "2022"
+  galaxy_tags:
+    - jenkins
+    - windows
+    - ci
+    - ludus
+    - maas
+dependencies: []
+collections:
+  - ansible.windows
+  - community.windows
+  - chocolatey.chocolatey
