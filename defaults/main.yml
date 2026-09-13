@@ -9,6 +9,13 @@ ludus_jenkins_agent_user: jenkins-agent
 # NOT contain "jenkins" or "agent" (case-insensitive). Override in production.
 ludus_jenkins_agent_password: "Ch4ngeMe!Runner1"
 ludus_jenkins_java_version: "21"
+# Controller admin credentials, used ONLY to fetch this agent's inbound
+# connection secret from {url}/computer/{name}/jenkins-agent.jnlp. Must match the
+# controller's JCasC admin (ludus_jenkins_admin_user / _password on the
+# controller role). The controller must also define a matching static node
+# (ludus_jenkins_static_agents) or the secret endpoint returns 404.
+ludus_jenkins_admin_user: admin
+ludus_jenkins_admin_password: admin
 # Chocolatey package that provides JDK 21. The community feed has no "openjdk21"
 # package; temurin21 (Eclipse Temurin) is the standard, always-present choice.
 # microsoft-openjdk21 also works if you prefer the Microsoft build.

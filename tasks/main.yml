@@ -61,6 +61,30 @@
   register: ludus_jenkins_agent_java_exe
   changed_when: false
 
+- name: Fetch this agent's inbound connection secret from the controller
+  # Inbound agents require a per-node secret. The stable way to obtain it is the
+  # node's JNLP descriptor (getJnlpMac() via Groovy broke in Jenkins 2.427+).
+  # Requires the controller to have already created a matching static node
+  # (ludus_jenkins_static_agents) — a 404 here means that node is missing.
+  ansible.windows.win_uri:
+    url: "{{ ludus_jenkins_url }}/computer/{{ ludus_jenkins_agent_name }}/jenkins-agent.jnlp"
+    method: GET
+    url_username: "{{ ludus_jenkins_admin_user }}"
+    url_password: "{{ ludus_jenkins_admin_password }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+  register: ludus_jenkins_agent_jnlp
+  until: ludus_jenkins_agent_jnlp.status_code == 200
+  retries: 15
+  delay: 8
+  changed_when: false
+
+- name: Extract the connection secret from the JNLP descriptor
+  # The secret is the first <argument> in the JNLP descriptor.
+  ansible.builtin.set_fact:
+    ludus_jenkins_agent_secret: "{{ (ludus_jenkins_agent_jnlp.content | regex_findall('<argument>([^<]+)</argument>'))[0] }}"
+
 - name: Create Jenkins agent Windows service
   # Recreated every run so config changes (java path, credentials, url) always
   # take effect. The previous `creates: agent-stdout.log` guard keyed idempotency
@@ -76,6 +100,7 @@
       "-jar" "{{ ludus_jenkins_agent_workdir }}\agent.jar" `
       "-url" "{{ ludus_jenkins_url }}" `
       "-name" "{{ ludus_jenkins_agent_name }}" `
+      "-secret" "{{ ludus_jenkins_agent_secret }}" `
       "-workDir" "{{ ludus_jenkins_agent_workdir }}" `
       "-webSocket"
     nssm set JenkinsAgent ObjectName ".\{{ ludus_jenkins_agent_user }}" "{{ ludus_jenkins_agent_password }}"
