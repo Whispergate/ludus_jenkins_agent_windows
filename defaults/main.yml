@@ -6,3 +6,7 @@ ludus_jenkins_agent_workdir: "C:\\Jenkins"
 ludus_jenkins_agent_user: jenkins-agent
 ludus_jenkins_agent_password: "JenkinsAgent1!"
 ludus_jenkins_java_version: "21"
+# Chocolatey package that provides JDK 21. The community feed has no "openjdk21"
+# package; temurin21 (Eclipse Temurin) is the standard, always-present choice.
+# microsoft-openjdk21 also works if you prefer the Microsoft build.
+ludus_jenkins_agent_java_package: temurin21
