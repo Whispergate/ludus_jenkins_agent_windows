@@ -4,6 +4,11 @@
     name: "{{ ludus_jenkins_agent_java_package }}"
     state: present
 
+- name: Install Git via Chocolatey
+  chocolatey.chocolatey.win_chocolatey:
+    name: git
+    state: present
+
 - name: Create Jenkins agent user
   ansible.windows.win_user:
     name: "{{ ludus_jenkins_agent_user }}"
